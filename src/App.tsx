@@ -31,16 +31,43 @@ type FileShareNavigator = {
   canShare?: (data: ShareData) => boolean;
   share?: (data: ShareData) => Promise<void>;
 };
+const examplePhotoOrders: Record<CollageLayout, number[]> = {
+  protagonista: [0, 1, 2, 3, 4],
+  panoramico: [4, 2, 0, 3, 1],
+  siete: [1, 3, 0, 4, 2, 3, 1],
+  mosaico: [3, 4, 1, 0, 2, 4, 3, 1, 0],
+  "corazon-carta": [2, 4, 1, 3, 0],
+  "corazon-siete": [0, 2, 4, 1, 3, 2, 0],
+  "corazon-mosaico": [3, 1, 4, 0, 2, 1, 3, 4, 2],
+};
 function LayoutThumbnail({ layout }: { layout: CollageLayout }) {
+  const model = getCollageLayout(layout);
+  const clipId = "thumbnail-" + layout;
   return (
     <svg
       className="layout-thumbnail"
       viewBox="0 0 2000 1400"
       aria-hidden="true"
     >
-      {getCollageLayout(layout).boxes.map(([x, y, width, height], index) => (
-        <rect key={index} x={x} y={y} width={width} height={height} rx={50} />
-      ))}
+      {model.shape === "heart" && (
+        <defs>
+          <clipPath id={clipId}>
+            <path d="M1000 1288 C860 1160 290 810 290 470 C290 215 600 110 830 210 C915 250 978 340 1000 420 C1022 340 1085 250 1170 210 C1400 110 1710 215 1710 470 C1710 810 1140 1160 1000 1288Z" />
+          </clipPath>
+        </defs>
+      )}
+      <g clipPath={model.shape === "heart" ? `url(#${clipId})` : undefined}>
+        {model.boxes.map(([x, y, width, height], index) => (
+          <rect
+            key={index}
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            rx={model.shape === "heart" ? 16 : 50}
+          />
+        ))}
+      </g>
     </svg>
   );
 }
@@ -57,10 +84,6 @@ function CollageShowcase({
     <div className="collage-showcase-content">
       <div className="collage-showcase-heading">
         <h2>Así pueden verse nuestros recuerdos</h2>
-        <p>
-          Cuatro acomodos para 5, 7 o 9 fotografías. Elige tu favorito y
-          combínalo con un marco romántico.
-        </p>
       </div>
       <div className="collage-example-grid">
         {collageLayouts.map((layout) => (
@@ -69,7 +92,7 @@ function CollageShowcase({
             key={layout.id}
             onClick={() => onChoose(layout.id)}
             aria-label={
-              "Probar el acomodo " +
+              "Usar el acomodo " +
               layout.title +
               ", " +
               layout.photoCount +
@@ -90,18 +113,13 @@ function CollageShowcase({
             <span className="collage-example-copy">
               <strong>{layout.title}</strong>
               <span className="example-badge">{layout.photoCount} fotos</span>
-              <small>{layout.description}</small>
               <span className="collage-example-action">
-                Crear con este acomodo <ArrowRight size={12} />
+                Usar este acomodo <ArrowRight size={14} />
               </span>
             </span>
           </button>
         ))}
       </div>
-      <p className="collage-showcase-note">
-        Los ejemplos usan fotos ilustrativas. Elige un acomodo para crear tu
-        collage con tus propias fotos.
-      </p>
     </div>
   );
 }
@@ -188,35 +206,40 @@ export default function App() {
   }, []);
   useEffect(() => {
     let active = true;
-    Promise.all(
-      collageLayouts.map(async (example) => {
-        const photos = Array.from(
-          { length: example.photoCount },
-          (_, i) => examplePhotos[i % examplePhotos.length],
-        );
-        const canvas = await renderCollage(
-          photos,
-          example.exampleFrame,
-          example.id,
-          {
-            width: 640,
-            height: 448,
-          },
-        );
-        return [example.id, canvas.toDataURL("image/jpeg", 0.88)] as const;
-      }),
-    )
-      .then((examples) => {
-        if (active)
-          setCollageExamples(
-            Object.fromEntries(examples) as Partial<
-              Record<CollageLayout, string>
-            >,
+    async function prepareExamples() {
+      let failures = 0;
+      for (const example of collageLayouts) {
+        try {
+          const photos = examplePhotoOrders[example.id].map(
+            (index) => examplePhotos[index],
           );
-      })
-      .catch(() => {
-        if (active) setCollageExamplesError(true);
-      });
+          const canvas = await renderCollage(
+            photos,
+            example.exampleFrame,
+            example.id,
+            {
+              width: 640,
+              height: 448,
+            },
+          );
+          const image = canvas.toDataURL("image/jpeg", 0.88);
+          if (active)
+            setCollageExamples((current) => ({
+              ...current,
+              [example.id]: image,
+            }));
+        } catch {
+          failures++;
+        }
+        if (active && failures) setCollageExamplesError(true);
+        // Let the browser paint each finished card before building the next one.
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => resolve()),
+        );
+        if (!active) return;
+      }
+    }
+    void prepareExamples();
     return () => {
       active = false;
     };
@@ -293,19 +316,6 @@ export default function App() {
         .map((photo) => photo.id),
     );
     setModal("collage");
-  }
-  function changeLayout(nextId: CollageLayout) {
-    const next = getCollageLayout(nextId);
-    setLayoutId(nextId);
-    setError("");
-    setSelected((chosen) =>
-      [
-        ...chosen,
-        ...photos
-          .filter((photo) => !chosen.includes(photo.id))
-          .map((photo) => photo.id),
-      ].slice(0, next.photoCount),
-    );
   }
   async function uploadCollage(files: FileList | null) {
     if (!files?.length || collageUploadBusy) return;
@@ -390,6 +400,9 @@ export default function App() {
   }
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Saltar al contenido
+      </a>
       <header className="site-header">
         <div className="header-inner">
           <a className="brand" href="#" aria-label="Nosotros, inicio">
@@ -406,20 +419,18 @@ export default function App() {
           </a>
         </div>
       </header>
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="intro">
           <div>
-            <span className="intro-badge">
-              <Sparkles size={14} /> RECUERDOS HECHOS CON AMOR
-            </span>
-            <h1>Nuestra Historia en Fotografías</h1>
-            <p className="subtitle">
-              “Cada momento a tu lado merece ser recordado para siempre.”
-            </p>
+            <h1>Nuestra historia de amor en fotografías</h1>
           </div>
         </section>
-        <section className="collage-showcase" aria-label="Ejemplos de collage">
-          <span className="tape">INSPIRACIÓN PARA EL COLLAGE</span>
+        <section
+          id="collage-showcase"
+          className="collage-showcase"
+          aria-label="Ejemplos de collage"
+        >
+          <span className="tape">DISTINTAS FORMAS DE COLLAGE</span>
           <CollageShowcase
             previews={collageExamples}
             error={collageExamplesError}
@@ -429,11 +440,10 @@ export default function App() {
             }}
           />
         </section>
-        <footer className="page-footer">
-          <Heart size={11} /> Hecho de momentos. Solo en esta visita.
-          <span>Tus fotos se borran al recargar</span>
-        </footer>
       </main>
+      <footer className="site-footer">
+        © 2026 · Todos los derechos reservados
+      </footer>
       {notice && (
         <div role="status" className="toast">
           <Check size={18} />
@@ -452,69 +462,26 @@ export default function App() {
           onClose={close}
         >
           <fieldset className="layout-fieldset">
-            <legend>Elige el acomodo</legend>
-            <div
-              className="layout-options"
-              role="radiogroup"
-              aria-label="Acomodos del collage"
-            >
-              {collageLayouts.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={layoutId === option.id}
-                  aria-label={
-                    option.title + ". " + option.photoCount + " fotografías"
-                  }
-                  data-layout-choice={option.id}
-                  tabIndex={layoutId === option.id ? 0 : -1}
-                  disabled={collageUploadBusy}
-                  className={
-                    "layout-option " +
-                    (layoutId === option.id ? "layout-option-selected" : "")
-                  }
-                  onClick={() => changeLayout(option.id)}
-                  onKeyDown={(event) => {
-                    if (
-                      ![
-                        "ArrowRight",
-                        "ArrowDown",
-                        "ArrowLeft",
-                        "ArrowUp",
-                      ].includes(event.key)
-                    )
-                      return;
-                    event.preventDefault();
-                    const direction =
-                      event.key === "ArrowRight" || event.key === "ArrowDown"
-                        ? 1
-                        : -1;
-                    const currentOption = collageLayouts.findIndex(
-                      (item) => item.id === option.id,
-                    );
-                    const next =
-                      collageLayouts[
-                        (currentOption + direction + collageLayouts.length) %
-                          collageLayouts.length
-                      ];
-                    changeLayout(next.id);
-                    requestAnimationFrame(() =>
-                      document
-                        .querySelector<HTMLButtonElement>(
-                          "[data-layout-choice='" + next.id + "']",
-                        )
-                        ?.focus(),
-                    );
-                  }}
-                >
-                  <LayoutThumbnail layout={option.id} />
-                  <strong>{option.title}</strong>
-                  <span>{option.photoCount} fotos</span>
-                </button>
-              ))}
+            <legend>
+              <span className="step-number" aria-hidden="true">
+                1
+              </span>
+              Elige el acomodo
+            </legend>
+            <div className="layout-current">
+              <LayoutThumbnail layout={layoutId} />
+              <div className="layout-current-copy">
+                <strong>{layout.title}</strong>
+                <span>{layout.photoCount} fotos</span>
+              </div>
             </div>
           </fieldset>
+          <h3 className="editor-step-title">
+            <span className="step-number" aria-hidden="true">
+              2
+            </span>
+            Selecciona tus fotos
+          </h3>
           <p className="dialog-description">
             Selecciona {layout.photoCount} fotografías.
             {layout.featured
@@ -552,21 +519,7 @@ export default function App() {
                 }}
               />
             </label>
-            <p>
-              Elige hasta 9 fotos de tu dispositivo. JPEG, PNG, WebP o fotos
-              HEIC/HEIF de iPhone · 10 MB por foto. Solo se conservan durante
-              esta visita.
-            </p>
           </div>
-          {photos.length < layout.photoCount && (
-            <p className="collage-needed" role="status">
-              Necesitas agregar {layout.photoCount - photos.length}{" "}
-              {layout.photoCount - photos.length === 1
-                ? "fotografía más"
-                : "fotografías más"}{" "}
-              para crear tu collage.
-            </p>
-          )}
           <div className="collage-picker">
             {photos.map((m) => {
               const pos = selected.indexOf(m.id);
@@ -634,6 +587,12 @@ export default function App() {
           <p className="selection-count" aria-live="polite">
             {selected.length} de {layout.photoCount} fotografías seleccionadas
           </p>
+          <h3 className="editor-step-title">
+            <span className="step-number" aria-hidden="true">
+              3
+            </span>
+            Personaliza y guarda
+          </h3>
           <fieldset className="frame-fieldset">
             <legend>Elige un marco romántico</legend>
             <p className="frame-hint">
@@ -692,13 +651,17 @@ export default function App() {
                     className={`frame-swatch frame-swatch-${frame.id}`}
                     aria-hidden="true"
                   >
-                    {frame.id === "carta"
-                      ? "♡  ✉  ♡"
-                      : frame.id === "rosas"
-                        ? "❀  ♥  ❀"
-                        : frame.id === "dorado"
-                          ? "✦  ♥  ✦"
-                          : "♥  ♥  ♥"}
+                    {
+                      {
+                        corazones: "♥  ♥  ♥",
+                        carta: "♡  ✉  ♡",
+                        rosas: "❀  ♥  ❀",
+                        dorado: "✦  ♥  ✦",
+                        lavanda: "✿  ♥  ✿",
+                        eucalipto: "❧  ♥  ❧",
+                        noche: "☾  ✦  ✦",
+                      }[frame.id]
+                    }
                   </span>
                   <span className="frame-option-copy">
                     <strong>{frame.title}</strong>
@@ -711,7 +674,7 @@ export default function App() {
               ))}
             </div>
           </fieldset>
-          {previewReady ? (
+          {previewReady && (
             <img
               className="collage-preview"
               data-frame-style={frameStyle}
@@ -719,14 +682,6 @@ export default function App() {
               src={preview}
               alt={`Vista previa de ${layout.title}: ${layout.photoCount} fotografías con marco ${collageFrames.find((frame) => frame.id === frameStyle)?.title}`}
             />
-          ) : (
-            <div className="preview-placeholder">
-              {selected.length === layout.photoCount
-                ? "Preparando nuestros momentos…"
-                : "Selecciona " +
-                  layout.photoCount +
-                  " fotografías para ver el collage"}
-            </div>
           )}
           {error && (
             <p className="error" role="alert">
