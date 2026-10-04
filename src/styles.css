@@ -170,9 +170,9 @@ main {
   margin: 0 auto;
 }
 .intro {
-  margin-bottom: 27px;
+  margin-bottom: 36px;
   text-align: center;
-  transform: translateY(-42px);
+  transform: translateY(-10px);
 }
 h1 {
   font-size: clamp(32px, 3.75vw, 46px);
@@ -204,7 +204,6 @@ h1 {
   border-radius: 26px;
   padding: 58px 24px 23px;
   box-shadow: 0 12px 28px #57436520;
-  border: 1px solid #d5c4db;
 }
 .collage-showcase-heading {
   margin: 0 auto 18px;
@@ -901,10 +900,11 @@ h1 {
   line-height: 1.55;
 }
 h1 {
-  font-size: clamp(58px, 6vw, 72px);
+  font-family: var(--font-sans);
+  font-size: clamp(42px, 5vw, 58px);
   letter-spacing: 0;
-  line-height: 1.12;
-  font-weight: 400;
+  line-height: 1.08;
+  font-weight: 600;
 }
 .brand strong {
   font-size: 35px;
@@ -912,6 +912,7 @@ h1 {
 }
 .collage-showcase-heading h2 {
   font-size: clamp(46px, 4.8vw, 58px);
+  font-family: var(--font-serif);
   line-height: 1.15;
   font-weight: 400;
   color: #432d4c;
@@ -1011,11 +1012,11 @@ h1 {
 }
 @media (max-width: 767px) {
   .intro h1 {
-    font-size: clamp(42px, 11vw, 56px);
+    font-size: clamp(36px, 10vw, 48px);
     letter-spacing: 0;
   }
   .collage-showcase-heading h2 {
-    font-size: 44px;
+    font-size: clamp(34px, 8vw, 42px);
   }
   .collage-example-copy strong {
     font-size: 27px;
@@ -1038,4 +1039,22 @@ h1 {
   .dialog .collage-upload-control {
     max-width: none;
   }
+}
+
+.dialog .dialog-head h2,
+.dialog .editor-step-title,
+.dialog .layout-fieldset legend,
+.dialog .frame-fieldset legend,
+.dialog .layout-current-copy strong {
+  font-family: var(--font-sans);
+  font-style: normal;
+}
+.dialog .dialog-head h2 {
+  font-weight: 500;
+}
+.dialog .editor-step-title,
+.dialog .layout-fieldset legend,
+.dialog .frame-fieldset legend,
+.dialog .layout-current-copy strong {
+  font-weight: 600;
 }
