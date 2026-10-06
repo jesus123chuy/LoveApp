@@ -125,8 +125,8 @@ h3 {
   display: block;
 }
 .brand small {
-  font-size: 10px;
-  letter-spacing: 1.6px;
+  font-size: 14px;
+  letter-spacing: 0.03em;
   display: block;
   margin-top: 3px;
 }
@@ -139,7 +139,7 @@ h3 {
   background: #742646;
   color: white;
   padding: 11px 20px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   box-shadow: 0 3px 8px #4c233d30;
   transition:
@@ -191,16 +191,16 @@ h1 {
   border-top: 1px solid #d9cedb;
   background: #fffdf9cc;
   color: #51465a;
-  font-size: 12px;
+  font-size: 16px;
   text-align: center;
 }
 .collage-showcase {
   position: relative;
   background:
-    radial-gradient(ellipse at 15% 8%, #e7ddeb 0%, transparent 53%),
-    radial-gradient(ellipse at 88% 88%, #eadce6 0%, transparent 54%),
-    linear-gradient(135deg, #cbbbd4 0%, #bbaac7 48%, #d0c3d8 100%);
-  color: #432d4c;
+    radial-gradient(at 15% 8%, #e7ddeb, transparent 53%),
+    radial-gradient(at 88% 88%, #eadce6, transparent 54%),
+    linear-gradient(135deg, #eaeaea, #f1e8f6 48%, #ececec);
+  color: #ffffff;
   border-radius: 26px;
   padding: 58px 24px 23px;
   box-shadow: 0 12px 28px #57436520;
@@ -263,7 +263,7 @@ h1 {
 .collage-example-placeholder {
   padding: 12px;
   color: #51465a;
-  font-size: 11px;
+  font-size: 14px;
   text-align: center;
 }
 .collage-example-copy {
@@ -299,16 +299,17 @@ h1 {
 }
 .tape {
   position: absolute;
-  top: 0;
-  left: 47px;
-  transform: rotate(-3deg);
-  padding: 8px 18px;
-  background: #e8b94e;
-  color: #342538;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  box-shadow: 0 3px 7px #25172d30;
+  top: -8px;
+  left: 24px;
+  max-width: calc(100% - 48px);
+  padding: 9px 16px;
+  background: #742646;
+  color: #fff9f1;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 3px 9px #4c233d26;
 }
 .icon-button {
   border-radius: 50%;
@@ -327,25 +328,55 @@ h1 {
   margin: auto;
   border: 1px solid #c8b5c6;
   border-radius: 24px;
-  padding: 25px;
+  padding: 8px;
   background: #fffaf3;
   color: #342538;
   width: min(640px, calc(100% - 28px));
   max-height: 90dvh;
-  overflow: auto;
+  overflow: hidden;
   box-shadow: 0 20px 100px #51291d35;
+}
+.dialog-scroll {
+  max-height: calc(90dvh - 18px);
+  padding: 17px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   scroll-padding-block: 20px;
+  scrollbar-gutter: stable;
+  scrollbar-color: #a8849f #eee7ee;
+  scrollbar-width: thin;
+}
+.dialog-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.dialog-scroll::-webkit-scrollbar-track {
+  margin-block: 12px;
+  border-radius: 8px;
+  background: #eee7ee;
+}
+.dialog-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid #eee7ee;
+  border-radius: 8px;
+  background: #a8849f;
 }
 .dialog::backdrop {
   background: #44241c66;
   backdrop-filter: blur(5px);
 }
 .dialog-head {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  padding-right: 54px;
   margin-bottom: 18px;
+}
+.dialog-head > .icon-button {
+  position: absolute;
+  top: 0;
+  right: -12px;
 }
 .dialog-head h2 {
   font-size: 31px;
@@ -770,7 +801,7 @@ h1 {
     font-size: 24px;
   }
   .brand small {
-    font-size: 9px;
+    font-size: 14px;
   }
   .intro {
     margin-bottom: 22px;
@@ -814,14 +845,12 @@ h1 {
   .collage-example-action {
     font-size: 12px;
   }
-  .tape {
-    left: 28px;
-    font-size: 9px;
-    padding: 7px 14px;
-  }
-  .dialog {
-    padding: 20px;
+  .dialog-scroll {
+    padding: 12px;
     scroll-padding-block: 20px 112px;
+  }
+  .dialog-head > .icon-button {
+    right: -7px;
   }
   .dialog-head h2 {
     font-size: 28px;
@@ -857,9 +886,9 @@ h1 {
   .dialog-actions {
     position: sticky;
     z-index: 2;
-    bottom: -20px;
-    margin: 22px -20px -20px;
-    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+    bottom: -12px;
+    margin: 22px -12px -12px;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
     border-top: 1px solid #c8b5c6;
     background: #fffaf3;
     box-shadow: 0 -8px 18px #51291d10;
@@ -885,12 +914,12 @@ h1 {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
+  html {
+    scroll-behavior: auto;
+  }
+  .button:hover:not(:disabled),
+  .collage-example:hover {
+    transform: none;
   }
 }
 
@@ -923,7 +952,7 @@ h1 {
   font-weight: 400;
 }
 .collage-example-action {
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.01em;
 }
 .dialog-head h2 {
@@ -995,7 +1024,7 @@ h1 {
 }
 .example-badge,
 .frame-recommendation {
-  font-size: 11px;
+  font-size: 14px;
 }
 .collage-upload {
   justify-content: center;
@@ -1041,20 +1070,443 @@ h1 {
   }
 }
 
-.dialog .dialog-head h2,
-.dialog .editor-step-title,
-.dialog .layout-fieldset legend,
-.dialog .frame-fieldset legend,
-.dialog .layout-current-copy strong {
-  font-family: var(--font-sans);
-  font-style: normal;
+/* The editor keeps its header and actions outside the inset scrolling body. */
+.dialog {
+  width: min(760px, calc(100% - 32px));
+  max-height: min(900px, 92dvh);
+  padding: 0;
+  border: 1px solid #e5dce7;
+  border-radius: 28px;
+  background: #faf7fb;
+  box-shadow:
+    0 28px 90px #34253838,
+    0 4px 18px #34253814;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.dialog::backdrop {
+  background: #281e3259;
+  backdrop-filter: blur(8px);
+}
+.dialog .dialog-head {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 24px 80px 22px 28px;
+  border-bottom: 0;
+  background: linear-gradient(135deg, #fffdf9, #f8f2f8);
 }
 .dialog .dialog-head h2 {
-  font-weight: 500;
+  margin-top: 8px;
+  font-family: var(--font-sans);
+  font-size: 36px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #342538;
+}
+.dialog .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.8px;
+}
+.dialog-subtitle {
+  margin-top: 8px;
+  color: #796c80;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.dialog .dialog-head > .icon-button {
+  top: 20px;
+  right: 20px;
+  border: 0;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #69536f;
+  box-shadow: 0 2px 5px #34253808;
+  transition:
+    background-color 160ms,
+    color 160ms;
+}
+.dialog .dialog-head > .icon-button:hover {
+  background: #f1e6ef;
+  color: #742646;
+}
+.dialog .dialog-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  margin: 0 0 0 18px;
+  padding: 20px 12px 20px 6px;
+  scroll-padding-block: 20px;
+  scrollbar-color: #b09aac #f0e9f1;
+}
+.dialog-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.dialog-scroll::-webkit-scrollbar-track {
+  margin-block: 16px;
+  background: #f0e9f1;
+}
+.dialog-scroll::-webkit-scrollbar-thumb {
+  border-color: #f0e9f1;
+  background: #b09aac;
+}
+.editor-section {
+  min-width: 0;
+  padding: 20px;
+  border: 0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: none;
+}
+.editor-section + .editor-section {
+  margin-top: 14px;
 }
 .dialog .editor-step-title,
-.dialog .layout-fieldset legend,
-.dialog .frame-fieldset legend,
+.dialog .layout-fieldset legend {
+  margin: 0 0 14px;
+  padding: 0;
+  font: 700 15px/1.5 var(--font-ui);
+  color: #45334d;
+}
+.dialog .step-number {
+  width: 26px;
+  height: 26px;
+  flex-basis: 26px;
+  margin-right: 10px;
+  border-radius: 9px;
+  background: #f3e6ee;
+  color: #8c2f52;
+  font: 700 12px/1 var(--font-ui);
+}
+.dialog .layout-fieldset {
+  margin: 0;
+}
+.dialog .layout-current {
+  padding: 14px;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #faf2f7, #f8f5fc);
+}
 .dialog .layout-current-copy strong {
-  font-weight: 600;
+  font: 600 15px/1.5 var(--font-ui);
+}
+.dialog .layout-current-copy span {
+  font-size: 12px;
+  color: #76617d;
+}
+.dialog .dialog-description,
+.dialog .frame-hint {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #7b6d81;
+}
+.dialog .collage-upload {
+  margin: 16px 0;
+}
+.dialog .collage-upload-control {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  min-height: 96px;
+  padding: 18px;
+  gap: 14px;
+  justify-content: flex-start;
+  border: 0;
+  border-radius: 14px;
+  background: #fcf8fc;
+  color: #604266;
+  text-align: left;
+  transition:
+    background-color 160ms,
+    border-color 160ms;
+}
+.dialog .collage-upload-control:hover {
+  background: #f7eff7;
+  border-color: #8c2f52;
+}
+.upload-icon {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: #f0e4ed;
+  color: #8c2f52;
+}
+.upload-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.upload-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+.upload-copy strong {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.upload-copy small {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #78647e;
+}
+.dialog .collage-picker:empty {
+  display: none;
+}
+.dialog .pick-image {
+  border: 0;
+}
+.dialog .selection-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 20px;
+  background: #f6f1f8;
+  color: #806087;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.dialog .selection-count::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #b78cab;
+}
+.dialog .frame-fieldset {
+  margin: 0;
+}
+.dialog .frame-fieldset legend {
+  margin-bottom: 4px;
+  font: 600 13px/1.5 var(--font-ui);
+}
+.dialog .frame-hint {
+  margin: 0 0 16px;
+}
+.dialog .frame-option {
+  min-height: 88px;
+  padding: 12px;
+  gap: 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #fffdfd;
+}
+.dialog .frame-option-selected {
+  background: #faf0f6;
+  box-shadow: none;
+}
+.dialog .frame-swatch {
+  flex-basis: 54px;
+  height: 48px;
+  border: 0;
+  box-shadow: none;
+}
+.dialog .frame-option-copy strong {
+  font: 600 12px/1.5 var(--font-ui);
+}
+.dialog .frame-option-copy small {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #78677e;
+}
+.dialog .frame-recommendation {
+  padding: 3px 8px;
+  background: #f0e1ec;
+  color: #8c2f52;
+  font-size: 9px;
+  font-weight: 700;
+}
+.dialog .export-note {
+  margin: 16px 0 0;
+  font-size: 10px;
+  line-height: 1.7;
+  color: #78677e;
+}
+.dialog-footer {
+  flex: 0 0 auto;
+  padding: 16px 24px;
+  border-top: 0;
+  background: #fffdfb;
+}
+.dialog .dialog-actions {
+  position: static;
+  margin: 0;
+  padding: 0;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.dialog .dialog-actions .button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.dialog .dialog-actions .button.secondary {
+  border: 0;
+  background: #ffffff;
+  color: #75607c;
+}
+.dialog .mobile-save-hint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  text-align: center;
+}
+@media (max-width: 767px) {
+  .dialog {
+    position: fixed;
+    inset: auto 0 0;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    height: 90dvh;
+    max-height: 90dvh;
+    border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+  }
+  .dialog[open] {
+    animation: sheet-enter 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .dialog .dialog-head {
+    padding: 20px 70px 18px 20px;
+  }
+  .dialog .dialog-head h2 {
+    font-size: 30px;
+  }
+  .dialog .dialog-head > .icon-button {
+    top: 16px;
+    right: 16px;
+  }
+  .dialog .dialog-scroll {
+    margin: 0 0 0 10px;
+    padding: 14px 8px 14px 4px;
+  }
+  .editor-section {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .dialog .layout-current {
+    padding: 12px;
+  }
+  .dialog .layout-current-copy strong {
+    font-size: 13px;
+  }
+  .dialog .collage-upload-control {
+    padding: 14px;
+    gap: 10px;
+  }
+  .dialog-footer {
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+  }
+  .dialog .dialog-actions .button {
+    flex: 1;
+    padding-inline: 12px;
+  }
+}
+@keyframes sheet-enter {
+  from {
+    transform: translateY(24px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Photos develop into the album; controls keep task feedback brief. */
+.collage-example-art img {
+  animation: photo-develop 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--photo-reveal-delay, 0ms);
+}
+@keyframes photo-develop {
+  from {
+    clip-path: inset(0 0 6% 0);
+    filter: saturate(0.25) brightness(1.08);
+  }
+  to {
+    clip-path: inset(0);
+    filter: saturate(1) brightness(1);
+  }
+}
+@media (min-width: 768px) {
+  .dialog[open] {
+    animation: editor-enter 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes editor-enter {
+  from { transform: translateY(8px) scale(0.985); }
+  to { transform: translateY(0) scale(1); }
+}
+.dialog[open]::backdrop {
+  animation: editor-backdrop 180ms ease-out;
+}
+@keyframes editor-backdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.collage-example-action svg {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.collage-example:is(:hover, :focus-visible) .collage-example-action svg {
+  transform: translateX(3px);
+}
+.collage-example:active,
+.button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+.dialog .frame-swatch {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dialog .frame-option-selected .frame-swatch {
+  transform: scale(1.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .collage-example-art img,
+  .dialog[open] {
+    animation: none;
+  }
+  .collage-example,
+  .button,
+  .frame-option {
+    transition-property: background-color, border-color, color;
+    transition-duration: 120ms;
+  }
+  .collage-example-action svg,
+  .dialog .frame-swatch {
+    transition: none;
+  }
+  .collage-example:is(:hover, :focus-visible, :active),
+  .button:is(:hover, :active):not(:disabled),
+  .collage-example:is(:hover, :focus-visible) .collage-example-action svg,
+  .dialog .frame-option-selected .frame-swatch {
+    transform: none;
+  }
+  .dialog[open]::backdrop {
+    animation-duration: 120ms;
+  }
+  .spin {
+    animation: none;
+  }
+}
+@media (max-width: 520px) {
+  .dialog .frame-options {
+    grid-template-columns: 1fr;
+  }
+  .dialog .frame-option:nth-child(7) {
+    grid-column: auto;
+    justify-self: stretch;
+    width: auto;
+  }
 }

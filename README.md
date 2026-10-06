@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Abre la dirección que muestra Vite. Para comprobar tipos y generar la versión de producción: `npm run build`. Para verla: `npm run preview`.
+Abre `http://127.0.0.1:5173/`. Si ejecutas `npm run dev` de nuevo, reutiliza el servidor de este proyecto que ya está activo. Para detenerlo, pulsa `Ctrl+C` en la terminal donde se inició. Si otro programa ocupa el puerto 5173, el inicio avisa del conflicto sin cambiar de puerto. Para comprobar tipos y generar la versión de producción: `npm run build`. Para verla: `npm run preview`.
 
 Para probar desde un teléfono en la misma red Wi-Fi, ejecuta `npm run dev:mobile` y abre en Safari o Chrome la dirección **Network** que imprime Vite, por ejemplo `http://192.168.x.x:5173/`. `127.0.0.1` en el teléfono apunta al propio teléfono. Si la red bloquea la conexión, permite a Node/Vite el acceso en la red local. Para probar la hoja móvil de «Guardar imagen», usa una publicación HTTPS: la Web Share API requiere un contexto seguro.
 

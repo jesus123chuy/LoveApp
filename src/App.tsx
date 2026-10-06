@@ -86,10 +86,11 @@ function CollageShowcase({
         <h2>Así pueden verse nuestros recuerdos</h2>
       </div>
       <div className="collage-example-grid">
-        {collageLayouts.map((layout) => (
+        {collageLayouts.map((layout, index) => (
           <button
             className={"collage-example collage-example-" + layout.id}
             key={layout.id}
+            style={{ "--photo-reveal-delay": `${Math.min(index, 4) * 35}ms` } as React.CSSProperties}
             onClick={() => onChoose(layout.id)}
             aria-label={
               "Usar el acomodo " +
@@ -127,10 +128,12 @@ function Dialog({
   title,
   onClose,
   children,
+  footer,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -147,20 +150,28 @@ function Dialog({
         onClose();
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        const bounds = e.currentTarget.getBoundingClientRect();
+        if (
+          e.target === e.currentTarget &&
+          (e.clientX < bounds.left ||
+            e.clientX > bounds.right ||
+            e.clientY < bounds.top ||
+            e.clientY > bounds.bottom)
+        )
+          onClose();
       }}
       className="dialog"
     >
       <div className="dialog-head">
         <div>
-          <span className="eyebrow">NOSOTROS</span>
           <h2>{title}</h2>
         </div>
         <button className="icon-button" onClick={onClose} aria-label="Cerrar">
           <X size={20} />
         </button>
       </div>
-      {children}
+      <div className="dialog-scroll">{children}</div>
+      {footer && <div className="dialog-footer">{footer}</div>}
     </dialog>
   );
 }
@@ -460,265 +471,276 @@ export default function App() {
             " momentos, una historia"
           }
           onClose={close}
-        >
-          <fieldset className="layout-fieldset">
-            <legend>
-              <span className="step-number" aria-hidden="true">
-                1
-              </span>
-              Elige el acomodo
-            </legend>
-            <div className="layout-current">
-              <LayoutThumbnail layout={layoutId} />
-              <div className="layout-current-copy">
-                <strong>{layout.title}</strong>
-                <span>{layout.photoCount} fotos</span>
-              </div>
-            </div>
-          </fieldset>
-          <h3 className="editor-step-title">
-            <span className="step-number" aria-hidden="true">
-              2
-            </span>
-            Selecciona tus fotos
-          </h3>
-          <p className="dialog-description">
-            Selecciona {layout.photoCount} fotografías.
-            {layout.featured
-              ? " La primera será la protagonista; toca la estrella de otra foto para cambiarla."
-              : " Se colocan de izquierda a derecha y de arriba abajo. Puedes elegir qué foto va primero."}
-          </p>
-          <div className="collage-upload">
-            <label
-              className={
-                "collage-upload-control " +
-                (collageUploadBusy || photos.length === MAX_COLLAGE_UPLOADS
-                  ? "collage-upload-disabled"
-                  : "")
-              }
-            >
-              {collageUploadBusy ? (
-                <LoaderCircle size={17} className="spin" />
-              ) : (
-                <ImagePlus size={17} />
-              )}
-              {collageUploadBusy
-                ? "Preparando fotos…"
-                : "Subir fotos para el collage"}
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                aria-label="Añadir fotos al collage"
-                disabled={
-                  collageUploadBusy || photos.length === MAX_COLLAGE_UPLOADS
-                }
-                onChange={(event) => {
-                  void uploadCollage(event.target.files);
-                  event.target.value = "";
-                }}
-              />
-            </label>
-          </div>
-          <div className="collage-picker">
-            {photos.map((m) => {
-              const pos = selected.indexOf(m.id);
-              return (
-                <div
-                  className={`pick-card ${pos >= 0 ? "picked" : ""}`}
-                  key={m.id}
+          footer={
+            <>
+              <div className="dialog-actions">
+                <button className="button secondary" onClick={close}>
+                  Volver
+                </button>
+                <button
+                  className="button"
+                  disabled={
+                    !exportReady ||
+                    collageUploadBusy ||
+                    selected.length !== layout.photoCount
+                  }
+                  onClick={saveCollage}
                 >
-                  <button
-                    className="pick-image"
-                    aria-label={`${pos >= 0 ? "Deseleccionar" : "Seleccionar"} ${m.title}`}
-                    aria-pressed={pos >= 0}
-                    disabled={
-                      collageUploadBusy ||
-                      (pos < 0 && selected.length === layout.photoCount)
-                    }
-                    onClick={() =>
-                      setSelected((s) =>
-                        pos >= 0 ? s.filter((id) => id !== m.id) : [...s, m.id],
-                      )
-                    }
+                  {canShareImage ? (
+                    <Share2 size={16} />
+                  ) : (
+                    <Download size={16} />
+                  )}
+                  Guardar imagen
+                </button>
+              </div>
+            </>
+          }
+        >
+          <div className="editor-section">
+            <fieldset className="layout-fieldset">
+              <legend>
+                <span className="step-number" aria-hidden="true">
+                  1
+                </span>
+                Elige el acomodo
+              </legend>
+              <div className="layout-current">
+                <LayoutThumbnail layout={layoutId} />
+                <div className="layout-current-copy">
+                  <strong>{layout.title}</strong>
+                  <span>{layout.photoCount} fotos</span>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div className="editor-section">
+            <h3 className="editor-step-title">
+              <span className="step-number" aria-hidden="true">
+                2
+              </span>
+              Selecciona tus fotos
+            </h3>
+            <div className="collage-upload">
+              <label
+                className={
+                  "collage-upload-control " +
+                  (collageUploadBusy || photos.length === MAX_COLLAGE_UPLOADS
+                    ? "collage-upload-disabled"
+                    : "")
+                }
+              >
+                <span className="upload-icon" aria-hidden="true">
+                  {collageUploadBusy ? (
+                    <LoaderCircle size={17} className="spin" />
+                  ) : (
+                    <ImagePlus size={17} />
+                  )}
+                </span>
+                <span className="upload-copy">
+                  <strong>
+                    {collageUploadBusy
+                      ? "Preparando fotos…"
+                      : "Subir fotos para el collage"}
+                  </strong>
+                  <small>Elige tus fotos favoritas de tu dispositivo</small>
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  aria-label="Añadir fotos al collage"
+                  disabled={
+                    collageUploadBusy || photos.length === MAX_COLLAGE_UPLOADS
+                  }
+                  onChange={(event) => {
+                    void uploadCollage(event.target.files);
+                    event.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            <div className="collage-picker">
+              {photos.map((m) => {
+                const pos = selected.indexOf(m.id);
+                return (
+                  <div
+                    className={`pick-card ${pos >= 0 ? "picked" : ""}`}
+                    key={m.id}
                   >
-                    <img src={m.image} alt={m.title} />
-                    {pos >= 0 && <span className="pick-number">{pos + 1}</span>}
-                  </button>
-                  <span className="pick-title">{m.title}</span>
-                  {pos >= 0 && (
                     <button
-                      className="protagonist"
-                      aria-label={
-                        (layout.featured
-                          ? "Hacer protagonista: "
-                          : "Poner primero: ") + m.title
+                      className="pick-image"
+                      aria-label={`${pos >= 0 ? "Deseleccionar" : "Seleccionar"} ${m.title}`}
+                      aria-pressed={pos >= 0}
+                      disabled={
+                        collageUploadBusy ||
+                        (pos < 0 && selected.length === layout.photoCount)
                       }
-                      disabled={collageUploadBusy}
                       onClick={() =>
-                        setSelected((s) => [
-                          m.id,
-                          ...s.filter((id) => id !== m.id),
-                        ])
+                        setSelected((s) =>
+                          pos >= 0
+                            ? s.filter((id) => id !== m.id)
+                            : [...s, m.id],
+                        )
                       }
                     >
-                      <Sparkles size={12} />
-                      {layout.featured
-                        ? pos === 0
-                          ? "Protagonista"
-                          : "Destacar"
-                        : pos === 0
-                          ? "Primera foto"
-                          : "Poner primero"}
+                      <img src={m.image} alt={m.title} />
+                      {pos >= 0 && (
+                        <span className="pick-number">{pos + 1}</span>
+                      )}
                     </button>
-                  )}
-                  <button
-                    className="pick-remove"
-                    aria-label={"Eliminar del collage: " + m.title}
-                    disabled={collageUploadBusy}
-                    onClick={() => removeCollagePhoto(m.id)}
-                  >
-                    <Trash2 size={12} /> Quitar
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-          <p className="selection-count" aria-live="polite">
-            {selected.length} de {layout.photoCount} fotografías seleccionadas
-          </p>
-          <h3 className="editor-step-title">
-            <span className="step-number" aria-hidden="true">
-              3
-            </span>
-            Personaliza y guarda
-          </h3>
-          <fieldset className="frame-fieldset">
-            <legend>Elige un marco romántico</legend>
-            <p className="frame-hint">
-              El marco aparecerá en la vista previa y en tu collage descargado.
-            </p>
-            <div
-              className="frame-options"
-              role="radiogroup"
-              aria-label="Marcos románticos"
-            >
-              {collageFrames.map((frame) => (
-                <button
-                  key={frame.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={frameStyle === frame.id}
-                  aria-label={`${frame.title}. ${frame.description}${frame.recommended ? ". Recomendado" : ""}`}
-                  data-frame-style={frame.id}
-                  tabIndex={frameStyle === frame.id ? 0 : -1}
-                  className={`frame-option ${frameStyle === frame.id ? "frame-option-selected" : ""}`}
-                  onKeyDown={(event) => {
-                    if (
-                      ![
-                        "ArrowRight",
-                        "ArrowDown",
-                        "ArrowLeft",
-                        "ArrowUp",
-                      ].includes(event.key)
-                    )
-                      return;
-                    event.preventDefault();
-                    const direction =
-                      event.key === "ArrowRight" || event.key === "ArrowDown"
-                        ? 1
-                        : -1;
-                    const currentFrame = collageFrames.findIndex(
-                      (item) => item.id === frameStyle,
-                    );
-                    const nextFrame =
-                      collageFrames[
-                        (currentFrame + direction + collageFrames.length) %
-                          collageFrames.length
-                      ];
-                    setFrameStyle(nextFrame.id);
-                    requestAnimationFrame(() =>
-                      document
-                        .querySelector<HTMLButtonElement>(
-                          `[data-frame-style="${nextFrame.id}"]`,
-                        )
-                        ?.focus(),
-                    );
-                  }}
-                  onClick={() => setFrameStyle(frame.id)}
-                >
-                  <span
-                    className={`frame-swatch frame-swatch-${frame.id}`}
-                    aria-hidden="true"
-                  >
-                    {
-                      {
-                        corazones: "♥  ♥  ♥",
-                        carta: "♡  ✉  ♡",
-                        rosas: "❀  ♥  ❀",
-                        dorado: "✦  ♥  ✦",
-                        lavanda: "✿  ♥  ✿",
-                        eucalipto: "❧  ♥  ❧",
-                        noche: "☾  ✦  ✦",
-                      }[frame.id]
-                    }
-                  </span>
-                  <span className="frame-option-copy">
-                    <strong>{frame.title}</strong>
-                    <small>{frame.description}</small>
-                  </span>
-                  {frame.recommended && (
-                    <span className="frame-recommendation">Recomendado</span>
-                  )}
-                </button>
-              ))}
+                    <span className="pick-title">{m.title}</span>
+                    {pos >= 0 && (
+                      <button
+                        className="protagonist"
+                        aria-label={
+                          (layout.featured
+                            ? "Hacer protagonista: "
+                            : "Poner primero: ") + m.title
+                        }
+                        disabled={collageUploadBusy}
+                        onClick={() =>
+                          setSelected((s) => [
+                            m.id,
+                            ...s.filter((id) => id !== m.id),
+                          ])
+                        }
+                      >
+                        <Sparkles size={12} />
+                        {layout.featured
+                          ? pos === 0
+                            ? "Protagonista"
+                            : "Destacar"
+                          : pos === 0
+                            ? "Primera foto"
+                            : "Poner primero"}
+                      </button>
+                    )}
+                    <button
+                      className="pick-remove"
+                      aria-label={"Eliminar del collage: " + m.title}
+                      disabled={collageUploadBusy}
+                      onClick={() => removeCollagePhoto(m.id)}
+                    >
+                      <Trash2 size={12} /> Quitar
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-          </fieldset>
-          {previewReady && (
-            <img
-              className="collage-preview"
-              data-frame-style={frameStyle}
-              data-layout={layoutId}
-              src={preview}
-              alt={`Vista previa de ${layout.title}: ${layout.photoCount} fotografías con marco ${collageFrames.find((frame) => frame.id === frameStyle)?.title}`}
-            />
-          )}
-          {error && (
-            <p className="error" role="alert">
-              {error}
+            <p className="selection-count" aria-live="polite">
+              {selected.length} de {layout.photoCount} fotografías seleccionadas
             </p>
-          )}
-          {previewError && (
-            <p className="error" role="alert">
-              {previewError}
-            </p>
-          )}
-          <div className="dialog-actions">
-            <button className="button secondary" onClick={close}>
-              Volver
-            </button>
-            <button
-              className="button"
-              disabled={
-                !exportReady ||
-                collageUploadBusy ||
-                selected.length !== layout.photoCount
-              }
-              onClick={saveCollage}
-            >
-              {canShareImage ? <Share2 size={16} /> : <Download size={16} />}
-              Guardar imagen
-            </button>
           </div>
-          {canShareImage && (
-            <p className="mobile-save-hint">
-              En iPhone, toca «Guardar imagen» y elige «Guardar en Fotos».
-            </p>
-          )}
-          <p className="export-note">
-            2000 × 1400 px · {layout.title} · {layout.photoCount} fotos ·{" "}
-            {collageFrames.find((frame) => frame.id === frameStyle)?.title}
-          </p>
+          <div className="editor-section">
+            <h3 className="editor-step-title">
+              <span className="step-number" aria-hidden="true">
+                3
+              </span>
+              Personaliza y guarda
+            </h3>
+            <fieldset className="frame-fieldset">
+              <legend>Elige un marco romántico</legend>
+              <p className="frame-hint">
+                El marco aparecerá en la vista previa y en tu collage
+                descargado.
+              </p>
+              <div
+                className="frame-options"
+                role="radiogroup"
+                aria-label="Marcos románticos"
+              >
+                {collageFrames.map((frame) => (
+                  <button
+                    key={frame.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={frameStyle === frame.id}
+                    aria-label={`${frame.title}. ${frame.description}${frame.recommended ? ". Recomendado" : ""}`}
+                    data-frame-style={frame.id}
+                    tabIndex={frameStyle === frame.id ? 0 : -1}
+                    className={`frame-option ${frameStyle === frame.id ? "frame-option-selected" : ""}`}
+                    onKeyDown={(event) => {
+                      if (
+                        ![
+                          "ArrowRight",
+                          "ArrowDown",
+                          "ArrowLeft",
+                          "ArrowUp",
+                        ].includes(event.key)
+                      )
+                        return;
+                      event.preventDefault();
+                      const direction =
+                        event.key === "ArrowRight" || event.key === "ArrowDown"
+                          ? 1
+                          : -1;
+                      const currentFrame = collageFrames.findIndex(
+                        (item) => item.id === frameStyle,
+                      );
+                      const nextFrame =
+                        collageFrames[
+                          (currentFrame + direction + collageFrames.length) %
+                            collageFrames.length
+                        ];
+                      setFrameStyle(nextFrame.id);
+                      requestAnimationFrame(() =>
+                        document
+                          .querySelector<HTMLButtonElement>(
+                            `[data-frame-style="${nextFrame.id}"]`,
+                          )
+                          ?.focus(),
+                      );
+                    }}
+                    onClick={() => setFrameStyle(frame.id)}
+                  >
+                    <span
+                      className={`frame-swatch frame-swatch-${frame.id}`}
+                      aria-hidden="true"
+                    >
+                      {
+                        {
+                          corazones: "♥  ♥  ♥",
+                          carta: "♡  ✉  ♡",
+                          rosas: "❀  ♥  ❀",
+                          dorado: "✦  ♥  ✦",
+                          lavanda: "✿  ♥  ✿",
+                          eucalipto: "❧  ♥  ❧",
+                          noche: "☾  ✦  ✦",
+                        }[frame.id]
+                      }
+                    </span>
+                    <span className="frame-option-copy">
+                      <strong>{frame.title}</strong>
+                      <small>{frame.description}</small>
+                    </span>
+                    {frame.recommended && (
+                      <span className="frame-recommendation">Recomendado</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            {previewReady && (
+              <img
+                className="collage-preview"
+                data-frame-style={frameStyle}
+                data-layout={layoutId}
+                src={preview}
+                alt={`Vista previa de ${layout.title}: ${layout.photoCount} fotografías con marco ${collageFrames.find((frame) => frame.id === frameStyle)?.title}`}
+              />
+            )}
+            {error && (
+              <p className="error" role="alert">
+                {error}
+              </p>
+            )}
+            {previewError && (
+              <p className="error" role="alert">
+                {previewError}
+              </p>
+            )}
+          </div>
         </Dialog>
       )}
     </div>

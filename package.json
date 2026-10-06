@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --configLoader runner",
-    "dev:mobile": "vite --host 0.0.0.0 --configLoader runner",
+    "dev": "node scripts/dev-server.mjs",
+    "dev:mobile": "node scripts/dev-server.mjs --mobile",
     "build": "tsc -b && vite build --configLoader runner",
     "preview": "vite preview --host 127.0.0.1 --configLoader runner",
     "test": "node --test tests/*.test.mjs"
